@@ -64,7 +64,7 @@ def blackjack_game():
     Plays an automated game of blackjack
     Returns:
     Won: True if player won, False if dealer won
-    Hand: Player's starting hand
+    Value: Value of player's starting hand
     '''    
     deck = Deck()
     deck.shuffle()
@@ -72,14 +72,13 @@ def blackjack_game():
     player = Hand()
     dealer = Hand()
 
-    
 
     # Deal starting hands
     for i in range(2):
         player.add_card(deck.deal())
         dealer.add_card(deck.deal())
 
-    starting_hand = player.cards
+    starting_hand = player.value
 
     # Player's go
 
@@ -100,6 +99,21 @@ def blackjack_game():
         return False, starting_hand
 
 
-won, hand = blackjack_game()
+# won, hand = blackjack_game()
+# print(won, hand)
 
-print(won, hand)
+
+# Matplotlib
+plt.figure()
+# Build results array
+results = np.zeros(22)
+
+# Run n games
+n = 100000
+for i in range(n):
+    won, value = blackjack_game()
+    if won:
+        results[value] += 1
+print(sum(results))
+plt.bar(range(22), results/n * 100)
+plt.show()
