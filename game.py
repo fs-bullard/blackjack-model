@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+import seaborn as sns
 from constants import *
 
 # ------------------------ Rules ------------------------ # 
@@ -135,7 +136,6 @@ def choose_split(hand:Hand(), upcard:tuple):
         # All picture cards treated the same
         upval = 10
     val = hand.value
-
     if val == 22 or val == 16:
         return 'y'
     elif val == 18 and upval not in [7, 10]:
@@ -174,7 +174,7 @@ def blackjack_game():
     # Set dealer upcard
     upcard = dealer.cards[0]
 
-    starting_hand = player.value
+    starting_hand = (int(player.cards[0][0]), int(player.cards[1][0]))
 
     # Check if blackjack
     if dealer.soft and dealer.value == 11:
@@ -230,21 +230,30 @@ def blackjack_game():
 
 
 
-
-
 if __name__ == '__main__':
+
+    print('Running...')
 
     # Matplotlib
     plt.figure()
     # Build results array
-    results = np.zeros(22)
+    results = np.zeros((13,13))
+    freq = results.copy()
 
     # Run n games
-    n = 100000
+    n = 1000000
     for i in range(n):
-        won, value = blackjack_game()
+        won, hand = blackjack_game()
+        freq[hand[0] - 1, hand[1] - 1] += 1
         if won:
-            results[value] += 1
-    print(sum(results))
-    plt.bar(range(22), results/n * 100)
+            results[hand[0] - 1, hand[1] - 1] += 1
+            
+
+    for i in range(13):
+        for j in range(13):
+            results[j, i] = results[j, i] / freq[j, i]
+    # plt.imshow(results, cmap='hot', interpolation='nearest')
+    ax = sns.heatmap(results, cmap="YlGnBu")
+    ax.set(xlabel='Card index', ylabel='Card index')
+    plt.title(f"Fraction of rounds won with each starting hand for {n} total games.")
     plt.show()
