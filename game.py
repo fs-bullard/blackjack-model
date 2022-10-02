@@ -77,6 +77,78 @@ class Hand(Deck):
             else:
                 print('Stick...')
                 break
+    
+    def play_hand_ai(self, deck, upcard):
+        while self.value <= 21:
+            print(f'Hand: {self.print_cards()}')
+            move = choose_move(self, upcard)
+            if move == 't':
+                print('Twist...')
+                new_card = deck.deal()
+                self.add_card(new_card)
+                print(f'Dealt: {new_card}')
+            else:
+                print('Stick...')
+                break
+
+# --------------------------- AI -------------------------------- #
+
+def choose_move(hand:Hand(), upcard:tuple):
+    """
+    Chooses player's move based on their hand and
+    the dealer's upcard
+    Returns: 't' or 's' accordingly
+    """
+    if upcard[0] in RANKS[1:10]:
+        upval = int(upcard[0])
+    else:
+        # All picture cards treated the same
+        upval = 10
+
+    if hand.soft:
+        # Hand is soft so play accordingly
+        non_ace = hand.value - 1
+        if non_ace > 7:
+            return 's'
+        elif non_ace == 7 and upval < 9:
+            return 's'
+        else:
+            return 't'
+    else:
+        # Hand not soft
+        if hand.value == 12 and 4 <= upval <= 6:
+            return 's'
+        elif 12 < hand.value < 17 and upval < 7:
+            return 's'
+        elif hand.value > 17:
+            return 's'
+        else:
+            return 't'
+
+def choose_split(hand:Hand(), upcard:tuple):
+    """
+    Chooses if player wants to split based on hand and upcard
+    Returns 'y' or 'n' accordingly
+    """
+    if upcard[0] in RANKS[1:10]:
+        upval = int(upcard[0])
+    else:
+        # All picture cards treated the same
+        upval = 10
+    val = hand.value
+
+    if val == 22 or val == 16:
+        return 'y'
+    elif val == 18 and upval not in [7, 10]:
+        return 'y'
+    elif val == 14 and upval < 8:
+        return 'y'
+    elif val == 12 and 2 < upval < 7:
+        return 'y'
+    elif val in [4, 6] and 3 < upval < 8:
+        return 'y'
+    else: 
+        return 'n'
 
 # ------------------------- Play game ---------------------------- #
 def blackjack_game():
@@ -100,9 +172,7 @@ def blackjack_game():
     for i in range(2):
         player.add_card(deck.deal())
         dealer.add_card(deck.deal())
-    ###################### testing
-    player.cards = [('7', 'Clubs'), ('7', 'Spades')]
-
+    
     # Set dealer upcard
     upcard = dealer.cards[0]
 
@@ -127,9 +197,10 @@ def blackjack_game():
     # Check if they can/want to split
     if player.cards[0][0] == player.cards[1][0]:
         print('Player has a pair.')
-        split = input("Would you like to split? ")
-        if split not in ['y', 'n']:
-            split = input('Enter y or n: ')
+        # split = input("Would you like to split? ")
+        # if split not in ['y', 'n']:
+        #     split = input('Enter y or n: ')
+        split = choose_split(hand, upcard)
         if split == 'y':
             # Split into two hands
             print('Splitting into two hands...')
@@ -138,15 +209,15 @@ def blackjack_game():
             player_left.add_card(player.cards[0])
             player_right.add_card(player.cards[1])
             # Play both hands
-            player_left.play_hand(deck)
-            player_right.play_hand(deck)
+            player_left.play_hand_ai(deck, upcard)
+            player_right.play_hand_ai(deck, upcard)
             # Use the highest valid value hand
             if player_left.value < player_right.value <= 21:
                 player = player_right
             else:
                 player = player_left
     else:
-        player.play_hand(deck)
+        player.play_hand_ai(deck, upcard)
 
     
     print('-'*20)
@@ -176,7 +247,7 @@ def blackjack_game():
         player.value += 10
 
     # If dealer value higher than player value and valid
-    return not (dealer.value <= 21 and dealer.value >= player.value), starting_hand
+    return (player.value <= 21 and dealer.value < player.value), starting_hand
 
 
 
