@@ -33,6 +33,7 @@ class Deck():
         if len(self.cards) > 0:
             return self.cards.pop()
 
+
 class Hand(Deck):
     def __init__(self):
         self.cards = []
@@ -62,6 +63,21 @@ class Hand(Deck):
     def print_cards(self):
         return [f'{card[0]} of {card[1]}' for card in self.cards]
 
+    def play_hand(self, deck):
+        while self.value <= 21:
+            print(f'Hand: {self.print_cards()}')
+            move = input('Twist or stick? ')
+            if move not in ['t', 's']:
+                print('Enter t or s')
+            elif move == 't':
+                print('Twist...')
+                new_card = deck.deal()
+                self.add_card(new_card)
+                print(f'Dealt: {new_card}')
+            else:
+                print('Stick...')
+                break
+
 # ------------------------- Play game ---------------------------- #
 def blackjack_game():
     '''
@@ -70,7 +86,6 @@ def blackjack_game():
     Won: True if player won, False if dealer won
     Value: Value of player's starting hand
     '''    
-
     print('------------- Playing Blackjack -----------')
 
     deck = Deck()
@@ -79,14 +94,15 @@ def blackjack_game():
     player = Hand()
     dealer = Hand()
 
-
     print('Dealing hands')
 
     # Deal starting hands
     for i in range(2):
         player.add_card(deck.deal())
         dealer.add_card(deck.deal())
-    
+    ###################### testing
+    player.cards = [('7', 'Clubs'), ('7', 'Spades')]
+
     # Set dealer upcard
     upcard = dealer.cards[0]
 
@@ -107,19 +123,31 @@ def blackjack_game():
     print('-'*20)
     print("Player's go...")
     # Player plays
-    while player.value <= 21:
-        print(f'Hand: {player.print_cards()}')
-        move = input('Twist or stick?')
-        if move not in ['t', 's']:
-            print('Enter t or s')
-        elif move == 't':
-            print('Twist...')
-            new_card = deck.deal()
-            player.add_card(new_card)
-            print(f'Dealt: {new_card}')
-        else:
-            print('Stick...')
-            break
+
+    # Check if they can/want to split
+    if player.cards[0][0] == player.cards[1][0]:
+        print('Player has a pair.')
+        split = input("Would you like to split? ")
+        if split not in ['y', 'n']:
+            split = input('Enter y or n: ')
+        if split == 'y':
+            # Split into two hands
+            print('Splitting into two hands...')
+            player_left = Hand()
+            player_right = Hand()
+            player_left.add_card(player.cards[0])
+            player_right.add_card(player.cards[1])
+            # Play both hands
+            player_left.play_hand(deck)
+            player_right.play_hand(deck)
+            # Use the highest valid value hand
+            if player_left.value < player_right.value <= 21:
+                player = player_right
+            else:
+                player = player_left
+    else:
+        player.play_hand(deck)
+
     
     print('-'*20)
     print('Dealer\'s go...')
