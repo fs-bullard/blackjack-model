@@ -80,15 +80,11 @@ class Hand(Deck):
     
     def play_hand_ai(self, deck, upcard):
         while self.value <= 21:
-            print(f'Hand: {self.print_cards()}')
             move = choose_move(self, upcard)
             if move == 't':
-                print('Twist...')
                 new_card = deck.deal()
                 self.add_card(new_card)
-                print(f'Dealt: {new_card}')
             else:
-                print('Stick...')
                 break
         if self.soft:
             if self.value < 12:
@@ -161,7 +157,7 @@ def blackjack_game():
     Won: True if player won, False if dealer won
     Value: Value of player's starting hand
     '''    
-    print('------------- Playing Blackjack -----------')
+    # print('------------- Playing Blackjack -----------')
 
     deck = Deck()
     deck.shuffle()
@@ -169,7 +165,6 @@ def blackjack_game():
     player = Hand()
     dealer = Hand()
 
-    print('Dealing hands')
 
     # Deal starting hands
     for i in range(2):
@@ -179,34 +174,20 @@ def blackjack_game():
     # Set dealer upcard
     upcard = dealer.cards[0]
 
-    print(f"Player's hand: {player.print_cards()}")
-    print(f"Dealer's hand {[upcard, 'hidden']}")
-
     starting_hand = player.value
 
     # Check if blackjack
     if dealer.soft and dealer.value == 11:
         # Dealer has natural so wins
-        print('Dealer has blackjack')
         return False, starting_hand
     elif player.soft and player.value == 11:
-        print('Player has blackjack')
         return True, starting_hand
-
-    print('-'*20)
-    print("Player's go...")
-    # Player plays
 
     # Check if they can/want to split
     if player.cards[0][0] == player.cards[1][0]:
-        print('Player has a pair.')
-        # split = input("Would you like to split? ")
-        # if split not in ['y', 'n']:
-        #     split = input('Enter y or n: ')
         split = choose_split(player, upcard)
         if split == 'y':
             # Split into two hands
-            print('Splitting into two hands...')
             player_left = Hand()
             player_right = Hand()
             player_left.add_card(player.cards[0])
@@ -214,8 +195,6 @@ def blackjack_game():
             # Play both hands
             player_left.play_hand_ai(deck, upcard)
             player_right.play_hand_ai(deck, upcard)
-            print(f'left val: {player_left.value}')
-            print(f'right val: {player_right.value}')
 
             # Use the highest valid value hand
             if player_left.value > 21:
@@ -229,10 +208,7 @@ def blackjack_game():
     else:
         player.play_hand_ai(deck, upcard)
 
-    
-    print('-'*20)
-    print('Dealer\'s go...')
-    print(f'Dealer\'s hand: {dealer.print_cards()}')
+
     # Dealer plays
     # Dealer twists until hand >= 17
     while dealer.value < 17:
@@ -242,15 +218,8 @@ def blackjack_game():
             dealer.value += 10
             break
         # Otherwise deal another card
-        print('Dealer twists...')
         new_card = deck.deal()
-        print(f'Dealt: {new_card}')
         dealer.add_card(new_card)
-        print(f'Dealer\'s hand: {dealer.print_cards()}')
-
-    print('-'*20)
-    print(f"Player's final hand: {player.print_cards()}")
-    print(f"Dealer's final hand: {dealer.print_cards()}")
 
     # If player's hand soft, try both 11 and 1 for ace
     if player.soft and player.value < 12:
@@ -265,24 +234,17 @@ def blackjack_game():
 
 if __name__ == '__main__':
 
-    won, hand = blackjack_game()
-    if won:
-        print('Player won')
-    else:
-        print('Dealer won')
+    # Matplotlib
+    plt.figure()
+    # Build results array
+    results = np.zeros(22)
 
-
-    # # Matplotlib
-    # plt.figure()
-    # # Build results array
-    # results = np.zeros(22)
-
-    # # Run n games
-    # n = 100000
-    # for i in range(n):
-    #     won, value = blackjack_game()
-    #     if won:
-    #         results[value] += 1
-    # print(sum(results))
-    # plt.bar(range(22), results/n * 100)
-    # plt.show()
+    # Run n games
+    n = 100000
+    for i in range(n):
+        won, value = blackjack_game()
+        if won:
+            results[value] += 1
+    print(sum(results))
+    plt.bar(range(22), results/n * 100)
+    plt.show()
