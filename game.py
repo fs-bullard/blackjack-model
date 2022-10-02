@@ -90,6 +90,9 @@ class Hand(Deck):
             else:
                 print('Stick...')
                 break
+        if self.soft:
+            if self.value < 12:
+                self.value += 10
 
 # --------------------------- AI -------------------------------- #
 
@@ -200,7 +203,7 @@ def blackjack_game():
         # split = input("Would you like to split? ")
         # if split not in ['y', 'n']:
         #     split = input('Enter y or n: ')
-        split = choose_split(hand, upcard)
+        split = choose_split(player, upcard)
         if split == 'y':
             # Split into two hands
             print('Splitting into two hands...')
@@ -211,8 +214,15 @@ def blackjack_game():
             # Play both hands
             player_left.play_hand_ai(deck, upcard)
             player_right.play_hand_ai(deck, upcard)
+            print(f'left val: {player_left.value}')
+            print(f'right val: {player_right.value}')
+
             # Use the highest valid value hand
-            if player_left.value < player_right.value <= 21:
+            if player_left.value > 21:
+                player = player_right
+            elif player_right.value > 21:
+                player = player_left
+            elif player_right.value > player_left.value:
                 player = player_right
             else:
                 player = player_left
